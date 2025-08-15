@@ -1,0 +1,12 @@
+U000001,0,System Admin,01234567890,admin@campus.com,admin123
+U000002,1,Choong Ti Huai,01139457703,tihuaichoong@gmail.com,tihuai414
+U000003,1,Liu Wei,0123456789,liuwei@gmail.com,liuwei123
+U000004,1,Test Student,01234567890,test@gmail.com,test123
+U000005,2,MiXue,01234567890,mixue@gmail.com,mixue123
+U000006,2,Little Castle Cafe,01234567890,littlecastlecafe@gmail.com,littlecastlecafe
+U000007,2,Katana,01234567890,katana@gmail.com,katana123
+U000008,3,Ali Fairuz,01919191919,alifairuz@gmail.com,alifairuz
+U000009,3,Amirah Husna,01818181818,amirahhusna@gmail.com,amirahhusna
+U000010,1,Chin Jun Lin,0184736593,junlin@gmail.com,junlin234
+U000011,3,Faaiz Noman,0183759373,faaiznoman@gmail.com,faaiznoman
+U000012,2,Warung Pak Tan,01139451111,warungpaktuan@gmail.com,warungpaktuan

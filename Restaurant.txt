@@ -1,0 +1,4 @@
+R01,MiXue,01234567890,mixue@gmail.com,mixue123,1
+R02,Little Castle Cafe,01234567890,littlecastlecafe@gmail.com,littlecastlecafe,2
+R03,Katana,01234567890,katana@gmail.com,katana123,4
+R04,Warung Pak Tan,01139451111,warungpaktuan@gmail.com,warungpaktuan,8

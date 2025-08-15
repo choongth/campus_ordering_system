@@ -1,0 +1,13 @@
+I001,Milk,R01,2.50,50
+I002,Sugar,R01,1.20,25
+I003,Ice Cream Base,R01,8.00,15
+I004,Tapioca Pearls,R01,3.50,30
+I005,Coffee Beans,R02,12.00,20
+I006,Bread,R02,0.80,40
+I007,Cheese,R02,5.50,12
+I008,Lettuce,R02,2.00,8
+I009,Rice,R03,3.00,100
+I010,Chicken,R03,15.00,25
+I011,Curry Powder,R03,4.50,18
+I012,Udon Noodles,R03,6.00,22
+I013,Packet Milk,R01,8.00,50

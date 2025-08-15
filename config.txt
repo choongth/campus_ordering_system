@@ -1,0 +1,33 @@
+# Campus Food Delivery System Configuration
+# Generated on: Aug 12 2025
+
+# System Settings
+max_concurrent_orders=100
+max_delivery_time_minutes=60
+delivery_base_fee_rate=0.10
+delivery_bonus_rate=0.00
+delivery_penalty_rate=0.00
+
+# Security Settings
+max_login_attempts=3
+session_timeout_minutes=30
+password_min_length=6
+password_require_special_chars=0
+
+# Business Settings
+student_default_balance=0.00
+order_queue_max_size=50
+restaurant_commission_rate=0.00
+delivery_personnel_max_orders=5
+
+# System Preferences
+enable_notifications=0
+enable_logging=0
+auto_backup_enabled=0
+backup_interval_hours=24
+
+# Performance Settings
+max_search_results=20
+cache_enabled=0
+database_connection_timeout=30
+max_file_size_mb=10
