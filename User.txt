@@ -10,3 +10,4 @@ U000009,3,Amirah Husna,01818181818,amirahhusna@gmail.com,amirahhusna
 U000010,1,Chin Jun Lin,0184736593,junlin@gmail.com,junlin234
 U000011,3,Faaiz Noman,0183759373,faaiznoman@gmail.com,faaiznoman
 U000012,2,Warung Pak Tan,01139451111,warungpaktuan@gmail.com,warungpaktuan
+U000013,1,John Doe,0198447593,johndoe@gmail.com,johndoe

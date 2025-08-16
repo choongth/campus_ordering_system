@@ -31,7 +31,7 @@ int menu_item_management(void) {
                         "3. Update item\n"
                         "4. Delete item\n"
                         "0. Exit\n"
-                        "What would you like to do?: ";
+                        "What would you like to do? (0-4): ";
 
         choice = get_integer_input(prompt);
         switch (choice) {
@@ -506,15 +506,15 @@ void view_order_statistics(char *restaurant_id);
 int order_queue_management(void) {
     int choice;
     while (1) {
-        printf("\n----- ORDER QUEUE MANAGEMENT -----\n");
-        printf("1. View pending orders\n");
-        printf("2. Update order status\n");
-        printf("3. View order details\n");
-        printf("4. Order statistics\n");
-        printf("0. Exit\n");
+        char prompt[] = "\n----- ORDER QUEUE MANAGEMENT -----\n"
+                        "1. View pending orders\n"
+                        "2. Update order status\n"
+                        "3. View order details\n"
+                        "4. Order statistics\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-4): ";
         
-        choice = get_integer_input("What would you like to do?: ");
-        
+        choice = get_integer_input(prompt);
         switch (choice) {
             case VIEW_PENDING_ORDERS:
                 view_pending_orders(current_restaurant_id);
@@ -1021,7 +1021,6 @@ void display_hourly_sales_trend(HourlySales *hourly, int count);
 void view_daily_sales_summary(void);
 void view_item_sales_analysis(void);
 void view_hourly_sales_trend(void);
-void view_sales_comparison(void);
 void export_sales_report(void);
 int parse_order_items(char *order_id, ItemSales *items, int *item_count);
 void get_menu_item_name(char *restaurant_id, char *item_id, char *item_name);
@@ -1032,23 +1031,21 @@ void get_current_date_restaurant(char *date_str);
 #define VIEW_DAILY_SUMMARY 1
 #define VIEW_ITEM_ANALYSIS 2
 #define VIEW_HOURLY_TREND 3
-#define VIEW_SALES_COMPARISON 4
-#define EXPORT_SALES_REPORT 5
+#define EXPORT_SALES_REPORT 4
 
 int daily_sales_report(void) {
     int choice;
     
     while (1) {
-        printf("\n----- DAILY SALES REPORT -----\n");
-        printf("1. View daily sales summary\n");
-        printf("2. View item sales analysis\n");
-        printf("3. View hourly sales trend\n");
-        printf("4. View sales comparison\n");
-        printf("5. Export sales report\n");
-        printf("0. Exit\n");
-        
-        choice = get_integer_input("What would you like to do?: ");
-        
+        char prompt[] = "\n----- DAILY SALES REPORT -----\n"
+                        "1. View daily sales summary\n"
+                        "2. View item sales analysis\n"
+                        "3. View hourly sales trend\n"
+                        "4. Export sales report\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-4): ";
+
+        choice = get_integer_input(prompt);
         switch (choice) {
             case VIEW_DAILY_SUMMARY:
                 view_daily_sales_summary();
@@ -1058,9 +1055,6 @@ int daily_sales_report(void) {
                 break;
             case VIEW_HOURLY_TREND:
                 view_hourly_sales_trend();
-                break;
-            case VIEW_SALES_COMPARISON:
-                view_sales_comparison();
                 break;
             case EXPORT_SALES_REPORT:
                 export_sales_report();
@@ -1309,7 +1303,7 @@ int get_hourly_sales_data(char *restaurant_id, char *date, HourlySales *hourly, 
 
 // Function to display daily sales summary
 void display_daily_sales_summary(DailySales *sales) {
-    printf("\n==================== DAILY SALES SUMMARY ====================\n");
+    printf("\n================= DAILY SALES SUMMARY =================\n");
     printf("Date: %s\n", sales->date);
     printf("Restaurant ID: %s\n", current_restaurant_id);
     
@@ -1350,7 +1344,7 @@ void display_daily_sales_summary(DailySales *sales) {
         }
     }
     
-    printf("=============================================================\n");
+    printf("=======================================================\n");
 }
 
 // Function to display item sales analysis
@@ -1498,16 +1492,16 @@ int get_inventory_by_number(Inventory *items, int count, int item_number, Invent
 int inventory_tracking(void) {
     int choice;
     while (1) {
-        printf("\n----- INVENTORY TRACKING -----\n");
-        printf("1. View inventory\n");
-        printf("2. Add inventory item\n");
-        printf("3. Update inventory item\n");
-        printf("4. Delete inventory item\n");
-        printf("5. Check low-stock alerts\n");
-        printf("0. Exit\n");
-        
-        choice = get_integer_input("What would you like to do?: ");
-        
+        char prompt[] = "\n----- INVENTORY TRACKING -----\n"
+                        "1. View inventory\n"
+                        "2. Add inventory item\n"
+                        "3. Update inventory item\n"
+                        "4. Delete inventory item\n"
+                        "5. Check low-stock alerts\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-5): ";
+
+        choice = get_integer_input(prompt);        
         switch (choice) {
             case VIEW_INVENTORY:
                 view_inventory(current_restaurant_id);
@@ -1980,7 +1974,7 @@ void check_low_stock_alerts(char *restaurant_id) {
     if (find_inventory_items(restaurant_id, items, &count) == FILE_ERROR) return;
     
     printf("Low-stock threshold: %d units\n", LOW_STOCK_THRESHOLD);
-    printf("\n==================== LOW-STOCK ITEMS ====================\n");
+    printf("\n=================== LOW-STOCK ITEMS ===================\n");
     
     int low_stock_count = 0;
     for (int i = 0; i < count; i++) {
@@ -2112,107 +2106,6 @@ void view_hourly_sales_trend(void) {
     }
     
     display_hourly_sales_trend(hourly, count);
-    
-    int exit_choice;
-    while (1) {
-        exit_choice = get_integer_input("\nEnter 0 to exit: ");
-        if (exit_choice == 0) {
-            break;
-        } else {
-            printf("Invalid input! Please enter 0 to exit.\n");
-        }
-    }
-}
-
-// Function to view sales comparison
-void view_sales_comparison(void) {
-    printf("\n----- SALES COMPARISON -----\n");
-    
-    char date1[DATE_LENGTH], date2[DATE_LENGTH];
-    
-    if (!safe_string_input("Enter first date (DD-MM-YYYY): ", date1, sizeof(date1))) {
-        printf("Invalid date format.\n");
-        return;
-    }
-    
-    if (!safe_string_input("Enter second date (DD-MM-YYYY): ", date2, sizeof(date2))) {
-        printf("Invalid date format.\n");
-        return;
-    }
-    
-    DailySales sales1, sales2;
-    
-    if (calculate_daily_sales(current_restaurant_id, date1, &sales1) == FILE_ERROR ||
-        calculate_daily_sales(current_restaurant_id, date2, &sales2) == FILE_ERROR) {
-        return;
-    }
-    
-    printf("\n==================== SALES COMPARISON ====================\n");
-    printf("%-25s %-12s %-12s %-12s\n", "Metric", date1, date2, "Change");
-    printf("------------------------------------------------------------\n");
-    
-    printf("%-25s %-12d %-12d ", "Total Orders", sales1.total_orders, sales2.total_orders);
-    int order_change = sales2.total_orders - sales1.total_orders;
-    if (order_change > 0) {
-        printf("+%d\n", order_change);
-    } else {
-        printf("%d\n", order_change);
-    }
-    
-    printf("%-25s %-12d %-12d ", "Completed Orders", sales1.completed_orders, sales2.completed_orders);
-    int completed_change = sales2.completed_orders - sales1.completed_orders;
-    if (completed_change > 0) {
-        printf("+%d\n", completed_change);
-    } else {
-        printf("%d\n", completed_change);
-    }
-    
-    printf("%-25s RM%-10.2f RM%-10.2f ", "Total Revenue", sales1.total_revenue, sales2.total_revenue);
-    float revenue_change = sales2.total_revenue - sales1.total_revenue;
-    if (revenue_change > 0) {
-        printf("+RM%.2f\n", revenue_change);
-    } else {
-        printf("RM%.2f\n", revenue_change);
-    }
-    
-    printf("%-25s RM%-10.2f RM%-10.2f ", "Completed Revenue", sales1.completed_revenue, sales2.completed_revenue);
-    float completed_revenue_change = sales2.completed_revenue - sales1.completed_revenue;
-    if (completed_revenue_change > 0) {
-        printf("+RM%.2f\n", completed_revenue_change);
-    } else {
-        printf("RM%.2f\n", completed_revenue_change);
-    }
-    
-    printf("%-25s RM%-10.2f RM%-10.2f ", "Average Order Value", sales1.average_order_value, sales2.average_order_value);
-    float avg_change = sales2.average_order_value - sales1.average_order_value;
-    if (avg_change > 0) {
-        printf("+RM%.2f\n", avg_change);
-    } else {
-        printf("RM%.2f\n", avg_change);
-    }
-    
-    printf("------------------------------------------------------------\n");
-    
-    printf("\n--- COMPARISON INSIGHTS ---\n");
-    if (revenue_change > 0) {
-        printf("Revenue increased by RM%.2f (%.1f%% growth)\n", 
-               revenue_change, (revenue_change / sales1.total_revenue) * 100);
-    } else if (revenue_change < 0) {
-        printf("Revenue decreased by RM%.2f (%.1f%% decline)\n", 
-               -revenue_change, (-revenue_change / sales1.total_revenue) * 100);
-    } else {
-        printf("Revenue remained stable.\n");
-    }
-    
-    if (order_change > 0) {
-        printf("Order volume increased by %d orders.\n", order_change);
-    } else if (order_change < 0) {
-        printf("Order volume decreased by %d orders.\n", -order_change);
-    } else {
-        printf("Order volume remained stable.\n");
-    }
-    
-    printf("==========================================================\n");
     
     int exit_choice;
     while (1) {

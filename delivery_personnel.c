@@ -28,15 +28,15 @@ extern void get_order_items_summary(char *order_id, char *summary, int summary_s
 int order_assignment(void) {
     int choice;
     while (1) {
-        printf("\n----- ORDER ASSIGNMENT -----\n");
-        printf("1. View available orders\n");
-        printf("2. View assigned orders\n");
-        printf("3. Accept order assignment\n");
-        printf("4. View delivery details\n");
-        printf("0. Exit\n");
-        
-        choice = get_integer_input("What would you like to do?: ");
-        
+        char prompt[] = "\n----- ORDER ASSIGNMENT -----\n"
+                        "1. View available orders\n"
+                        "2. View assigned orders\n"
+                        "3. Accept order assignment\n"
+                        "4. View delivery details\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-4): ";
+
+        choice = get_integer_input(prompt);        
         switch (choice) {
             case VIEW_AVAILABLE_ORDERS:
                 view_available_orders();
@@ -214,7 +214,7 @@ void display_available_orders(QueueOrder *orders, int count) {
         return;
     }
 
-    printf("\n========================= AVAILABLE ORDERS =========================\n");
+    printf("\n================================== AVAILABLE ORDERS ==================================\n");
     printf("%-4s %-8s %-12s %-10s %-8s %-12s %-25s\n", 
            "No.", "Order ID", "Restaurant", "Student", "Total", "Time", "Items");
     printf("--------------------------------------------------------------------------------------\n");
@@ -237,10 +237,10 @@ void display_assigned_orders(QueueOrder *orders, int count) {
         return;
     }
 
-    printf("\n========================= ASSIGNED ORDERS =========================\n");
+    printf("\n=========================== ASSIGNED ORDERS ===========================\n");
     printf("%-4s %-8s %-12s %-10s %-8s %-12s %-12s\n", 
            "No.", "Order ID", "Restaurant", "Student", "Total", "Time", "Status");
-    printf("------------------------------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------\n");
     
     for (int i = 0; i < count; i++) {
         char restaurant_name[NAME_LENGTH];
@@ -250,7 +250,7 @@ void display_assigned_orders(QueueOrder *orders, int count) {
                i + 1, orders[i].order_id, restaurant_name, orders[i].student_id,
                orders[i].total_price, orders[i].order_time, orders[i].status);
     }
-    printf("------------------------------------------------------------------------------\n");
+    printf("-----------------------------------------------------------------------\n");
 }
 
 // Function to view available orders
@@ -641,16 +641,16 @@ void get_current_time(char *time_str, int size);
 int delivery_status_management(void) {
     int choice;
     while (1) {
-        printf("\n----- DELIVERY STATUS MANAGEMENT -----\n");
-        printf("1. View current deliveries\n");
-        printf("2. Update delivery status\n");
-        printf("3. Mark order as delivered\n");
-        printf("4. Report delivery issue\n");
-        printf("5. Update estimated arrival time\n");
-        printf("0. Exit\n");
-        
-        choice = get_integer_input("What would you like to do?: ");
-        
+        char prompt[] = "\n----- DELIVERY STATUS MANAGEMENT -----\n"
+                        "1. View current deliveries\n"
+                        "2. Update delivery status\n"
+                        "3. Mark order as delivered\n"
+                        "4. Report delivery issue\n"
+                        "5. Update estimated arrival time (ETA)\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-5): ";
+
+        choice = get_integer_input(prompt);        
         switch (choice) {
             case VIEW_CURRENT_DELIVERIES:
                 view_current_deliveries();
@@ -796,10 +796,10 @@ void display_delivery_status(DeliveryStatusInfo *deliveries, int count) {
         return;
     }
 
-    printf("\n==================== DELIVERY STATUS ====================\n");
+    printf("\n=================================== DELIVERY STATUS ===================================\n");
     printf("%-4s %-8s %-8s %-15s %-12s %-10s %-12s %-10s\n", 
            "No.", "Del. ID", "Order ID", "Restaurant", "Student", "Status", "ETA", "Delivered");
-    printf("-----------------------------------------------------------------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
     
     for (int i = 0; i < count; i++) {
         const char *delivered_time = strlen(deliveries[i].delivered_time) > 0 ? 
@@ -811,7 +811,7 @@ void display_delivery_status(DeliveryStatusInfo *deliveries, int count) {
                get_delivery_status_text(deliveries[i].delivery_status),
                deliveries[i].estimated_time_arrival, delivered_time);
     }
-    printf("-----------------------------------------------------------------------------------\n");
+    printf("---------------------------------------------------------------------------------------\n");
 }
 
 // Function to view current deliveries
@@ -1320,15 +1320,15 @@ void get_current_date(char *date_str, int size);
 int earnings_calculation_and_tracking(void) {
     int choice;
     while (1) {
-        printf("\n----- EARNINGS CALCULATION AND TRACKING -----\n");
-        printf("1. View daily earnings\n");
-        printf("2. View monthly earnings\n");
-        printf("3. View earnings summary\n");
-        printf("4. Generate earnings report\n");
-        printf("0. Exit\n");
-        
-        choice = get_integer_input("What would you like to do?: ");
-        
+        char prompt[] = "\n----- EARNINGS CALCULATION AND TRACKING -----\n"
+                        "1. View daily earnings\n"
+                        "2. View monthly earnings\n"
+                        "3. View earnings summary\n"
+                        "4. Generate earnings report\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-4): ";
+
+        choice = get_integer_input(prompt);       
         switch (choice) {
             case VIEW_DAILY_EARNINGS:
                 view_daily_earnings();
@@ -1488,10 +1488,10 @@ void display_earnings_records(EarningsRecord *earnings, int count) {
         return;
     }
 
-    printf("\n==================== EARNINGS RECORDS ====================\n");
+    printf("\n===================================== EARNINGS RECORDS =====================================\n");
     printf("%-8s %-8s %-12s %-15s %-8s %-8s %-8s %-8s %-10s\n", 
            "Del. ID", "Order ID", "Date", "Restaurant", "Base", "Bonus", "Penalty", "Net", "Status");
-    printf("-------------------------------------------------------------------------------------\n");
+    printf("--------------------------------------------------------------------------------------------\n");
     
     for (int i = 0; i < count; i++) {
         const char *status = (earnings[i].punctuality == ON_TIME) ? "On Time" : "Late";
@@ -1501,7 +1501,7 @@ void display_earnings_records(EarningsRecord *earnings, int count) {
                earnings[i].restaurant_name, earnings[i].base_fee, earnings[i].bonus,
                earnings[i].penalty, earnings[i].net_earnings, status);
     }
-    printf("-------------------------------------------------------------------------------------\n");
+    printf("--------------------------------------------------------------------------------------------\n");
 }
 
 // Function to calculate earnings summary
@@ -1847,15 +1847,15 @@ int find_performance_streak(char *delivery_personnel_id, int *current_streak, in
 int performance_statistics(void) {
     int choice;
     while (1) {
-        printf("\n----- PERFORMANCE STATISTICS -----\n");
-        printf("1. View delivery success rate\n");
-        printf("2. View average delivery time\n");
-        printf("3. View performance trends\n");
-        printf("4. View performance ranking\n");
-        printf("0. Exit\n");
-        
-        choice = get_integer_input("What would you like to do?: ");
-        
+        char prompt[] = "\n----- PERFORMANCE STATISTICS -----\n"
+                        "1. View delivery success rate\n"
+                        "2. View average delivery time\n"
+                        "3. View performance trends\n"
+                        "4. View performance ranking\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-4): ";
+
+        choice = get_integer_input(prompt);
         switch (choice) {
             case VIEW_SUCCESS_RATE:
                 view_delivery_success_rate();

@@ -1,5 +1,5 @@
 # Campus Food Delivery System Configuration
-# Generated on: Aug 12 2025
+# Generated on: Aug 16 2025
 
 # System Settings
 max_concurrent_orders=100
@@ -19,15 +19,3 @@ student_default_balance=0.00
 order_queue_max_size=50
 restaurant_commission_rate=0.00
 delivery_personnel_max_orders=5
-
-# System Preferences
-enable_notifications=0
-enable_logging=0
-auto_backup_enabled=0
-backup_interval_hours=24
-
-# Performance Settings
-max_search_results=20
-cache_enabled=0
-database_connection_timeout=30
-max_file_size_mb=10

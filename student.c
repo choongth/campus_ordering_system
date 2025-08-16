@@ -30,7 +30,7 @@ int profile_management(void) {
                         "3. Update profile\n"
                         "4. Delete personal information\n"
                         "0. Exit\n"
-                        "What would you like to do?: ";
+                        "What would you like to do? (0-4): ";
 
         choice = get_integer_input(prompt);
         switch (choice) {
@@ -656,8 +656,6 @@ int check_account_activation_status(char *student_id) {
     return DEACTIVATE; // Default to deactivated if not found
 }
 
-
-
 // --------------------------------------------------------------------------------------------
 
 // Forward declarations for order placement
@@ -710,7 +708,7 @@ int order_placement(void) {
     int order_count = 0;
     
     if (!select_items_for_order(menu_items, item_count, order_items, &order_count)) {
-        printf("Order cancelled.\n");
+        printf("\nOrder cancelled.\n");
         return 0;
     }
     
@@ -821,7 +819,7 @@ void display_menu_for_ordering(MenuItemDisplay *menu_items, int item_count) {
     printf("--------------------------------------------------------------------------------\n");
     
     for (int i = 0; i < item_count; i++) {
-        printf("%-4d %-8s %-20s %-12s %-20s RM%.2f\n", 
+        printf("%-4d %-8s %-20s %-12s %-20s %.2f\n", 
                i + 1, menu_items[i].menu_item_id, menu_items[i].restaurant_name,
                menu_items[i].cuisine_name, menu_items[i].item_name, menu_items[i].item_price);
     }
@@ -845,14 +843,14 @@ int select_items_for_order(MenuItemDisplay *menu_items, int item_count, OrderIte
                        order_items[i].item_price, order_items[i].subtotal);
             }
         }
+        char prompt[] = "\nOptions:\n"
+                        "1. Add item to order\n"
+                        "2. Remove item from order\n"
+                        "3. Proceed to checkout\n"
+                        "0. Cancel order\n"
+                        "What would you like to do? (0-3): ";        
         
-        printf("\nOptions:\n");
-        printf("1. Add item to order\n");
-        printf("2. Remove item from order\n");
-        printf("3. Proceed to checkout\n");
-        printf("0. Cancel order\n");
-        
-        int choice = get_integer_input("Enter your choice: ");
+        int choice = get_integer_input(prompt);
         
         switch (choice) {
             case 1: {
@@ -861,7 +859,7 @@ int select_items_for_order(MenuItemDisplay *menu_items, int item_count, OrderIte
                     break;
                 }
                 
-                int item_num = get_integer_input("Enter item number to add: ");
+                int item_num = get_integer_input("\nEnter item number to add: ");
                 if (item_num < 1 || item_num > item_count) {
                     printf("Invalid item number.\n");
                     break;
@@ -909,7 +907,7 @@ int select_items_for_order(MenuItemDisplay *menu_items, int item_count, OrderIte
                     break;
                 }
                 
-                printf("Current order items:\n");
+                printf("\nCurrent order items:\n");
                 for (int i = 0; i < *order_count; i++) {
                     printf("%d. %s x%d\n", i + 1, order_items[i].item_name, order_items[i].quantity);
                 }
@@ -925,12 +923,12 @@ int select_items_for_order(MenuItemDisplay *menu_items, int item_count, OrderIte
                     order_items[i] = order_items[i + 1];
                 }
                 (*order_count)--;
-                printf("Item removed from order.\n");
+                printf("\nItem removed from order.\n");
                 break;
             }
             case 3:
                 if (*order_count == 0) {
-                    printf("No items in order. Please add items first.\n");
+                    printf("\nNo items in order. Please add items first.\n");
                     break;
                 }
                 return 1; // Proceed to checkout
@@ -991,7 +989,7 @@ int process_payment(float total_cost) {
 
 // Function to generate order confirmation
 void generate_order_confirmation(OrderItem *order_items, int order_count, float total_cost) {
-    printf("\n==================== ORDER CONFIRMATION ====================\n");
+    printf("\n======================== ORDER CONFIRMATION ========================\n");
     printf("Order placed successfully!\n");
     printf("Student ID: %s\n", current_student_id);
     
@@ -1001,7 +999,7 @@ void generate_order_confirmation(OrderItem *order_items, int order_count, float 
     
     printf("\nOrder Details:\n");
     printf("%-20s %-15s %-8s %-10s %-10s\n", "Item", "Restaurant", "Qty", "Unit Price", "Subtotal");
-    printf("-----------------------------------------------------------------------\n");
+    printf("--------------------------------------------------------------------\n");
     
     for (int i = 0; i < order_count; i++) {
         printf("%-20s %-15s %-8d RM%-8.2f RM%.2f\n",
@@ -1009,12 +1007,12 @@ void generate_order_confirmation(OrderItem *order_items, int order_count, float 
                order_items[i].quantity, order_items[i].item_price, order_items[i].subtotal);
     }
     
-    printf("-----------------------------------------------------------------------\n");
+    printf("--------------------------------------------------------------------\n");
     printf("Total Amount: RM%.2f\n", total_cost);
     printf("Payment Status: PAID\n");
     printf("Order Status: CONFIRMED\n");
     printf("\nThank you for your order! Your food will be prepared and delivered soon.\n");
-    printf("=============================================================\n");
+    printf("====================================================================\n");
 }
 
 // --------------------------------------------------------------------------------------------
@@ -1026,7 +1024,6 @@ void display_order_history(OrderHistory *orders, int count);
 void view_all_orders(void);
 void view_current_orders(void);
 void view_student_order_details(void);
-void track_specific_order(void);
 int get_order_history_by_number(OrderHistory *orders, int count, int order_number, OrderHistory *selected_order);
 void get_delivery_info(char *order_id, char *delivery_id, char *delivery_status, char *eta, char *delivered_time);
 const char* get_order_status_display(const char *status);
@@ -1035,19 +1032,18 @@ void display_order_receipt(OrderHistory *order);
 #define VIEW_ALL_ORDERS 1
 #define VIEW_CURRENT_ORDERS 2
 #define VIEW_ORDER_DETAILS 3
-#define TRACK_SPECIFIC_ORDER 4
 
 int track_order_history(void) {
     int choice;
     while (1) {
-        printf("\n----- TRACK ORDER HISTORY -----\n");
-        printf("1. View all orders\n");
-        printf("2. View current orders\n");
-        printf("3. View order details\n");
-        printf("4. Track specific order\n");
-        printf("0. Exit\n");
+        char prompt[] = "\n----- TRACK ORDER HISTORY -----\n"
+                        "1. View all orders\n"
+                        "2. View current orders\n"
+                        "3. View order details\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-3): ";
         
-        choice = get_integer_input("What would you like to do?: ");
+        choice = get_integer_input(prompt);
         
         switch (choice) {
             case VIEW_ALL_ORDERS:
@@ -1058,9 +1054,6 @@ int track_order_history(void) {
                 break;
             case VIEW_ORDER_DETAILS:
                 view_student_order_details();
-                break;
-            case TRACK_SPECIFIC_ORDER:
-                track_specific_order();
                 break;
             case 0:
                 return 0;
@@ -1369,122 +1362,6 @@ void view_student_order_details(void) {
     }
 }
 
-// Function to track specific order
-void track_specific_order(void) {
-    printf("\n----- TRACK SPECIFIC ORDER -----\n");
-    
-    char order_id[ORDER_ID_LENGTH];
-    printf("Enter Order ID to track: ");
-    fgets(order_id, sizeof(order_id), stdin);
-    order_id[strcspn(order_id, "\n")] = '\0';
-    
-    // Find the specific order
-    OrderHistory orders[100];
-    int count;
-    
-    if (find_student_orders(current_student_id, orders, &count) == FILE_ERROR) return;
-    
-    int found = 0;
-    OrderHistory tracked_order;
-    
-    for (int i = 0; i < count; i++) {
-        if (strcmp(orders[i].order_id, order_id) == 0) {
-            tracked_order = orders[i];
-            found = 1;
-            break;
-        }
-    }
-    
-    if (!found) {
-        printf("Order ID '%s' not found in your order history.\n", order_id);
-        printf("Please check the Order ID and try again.\n");
-        return;
-    }
-    
-    printf("\n--- ORDER TRACKING ---\n");
-    printf("Order ID: %s\n", tracked_order.order_id);
-    printf("Restaurant: %s\n", tracked_order.restaurant_name);
-    printf("Items: %s\n", tracked_order.items_summary);
-    printf("Total: RM%.2f\n", tracked_order.total_price);
-    printf("Order Date: %s at %s\n", tracked_order.order_date, tracked_order.order_time);
-    
-    printf("\n--- ORDER STATUS TIMELINE ---\n");
-    printf("Order Placed: %s %s\n", tracked_order.order_date, tracked_order.order_time);
-    
-    if (strcmp(tracked_order.status, "CONFIRMED") == 0) {
-        printf("Order Confirmed: Waiting for restaurant to prepare\n");
-        printf("Preparing: Pending\n");
-        printf("Ready for Delivery: Pending\n");
-        printf("Out for Delivery: Pending\n");
-        printf("Delivered: Pending\n");
-    } else if (strcmp(tracked_order.status, "PREPARING") == 0) {
-        printf("Order Confirmed: Complete\n");
-        printf("Preparing: Restaurant is preparing your order\n");
-        printf("Ready for Delivery: Pending\n");
-        printf("Out for Delivery: Pending\n");
-        printf("Delivered: Pending\n");
-    } else if (strcmp(tracked_order.status, "READY") == 0) {
-        printf("Order Confirmed: Complete\n");
-        printf("Preparing: Complete\n");
-        printf("Ready for Delivery: Order is ready for pickup\n");
-        if (strcmp(tracked_order.delivery_status, "Not Assigned") == 0) {
-            printf("Out for Delivery: Waiting for delivery personnel\n");
-        } else {
-            printf("Out for Delivery: Delivery personnel assigned\n");
-        }
-        printf("Delivered: Pending\n");
-    } else if (strcmp(tracked_order.status, "DELIVERED") == 0) {
-        printf("Order Confirmed: Complete\n");
-        printf("Preparing: Complete\n");
-        printf("Ready for Delivery: Complete\n");
-        printf("Out for Delivery: Complete\n");
-        printf("Delivered: %s\n", tracked_order.delivered_time);
-    } else if (strcmp(tracked_order.status, "CANCELLED") == 0) {
-        printf("Order Cancelled\n");
-        printf("Refund processed to your account\n");
-    }
-    
-    if (strcmp(tracked_order.delivery_id, "N/A") != 0) {
-        printf("\n--- DELIVERY INFORMATION ---\n");
-        printf("Delivery ID: %s\n", tracked_order.delivery_id);
-        printf("Delivery Status: %s\n", tracked_order.delivery_status);
-        if (strcmp(tracked_order.estimated_arrival, "N/A") != 0) {
-            printf("Estimated Arrival: %s\n", tracked_order.estimated_arrival);
-        }
-        if (strcmp(tracked_order.delivered_time, "N/A") != 0 && strcmp(tracked_order.delivered_time, "Pending") != 0) {
-            printf("Delivered At: %s\n", tracked_order.delivered_time);
-        }
-    }
-    
-    // Properly clear input buffer and wait for exit
-    clear_input_buffer_safe(); // Clear any remaining characters
-    
-    int exit_choice;
-    while (1) {
-        printf("\nEnter 0 to exit: ");
-        fflush(stdout);
-        
-        char input_line[100];
-        if (fgets(input_line, sizeof(input_line), stdin) != NULL) {
-            // Remove newline character
-            input_line[strcspn(input_line, "\n")] = '\0';
-            
-            // Try to parse as integer
-            char *endptr;
-            long val = strtol(input_line, &endptr, 10);
-            
-            // Check if entire string was converted and value is 0
-            if (*endptr == '\0' && val == 0) {
-                break; // Valid input: 0
-            } else {
-                printf("Invalid input! Please enter 0 to exit.\n");
-            }
-        } else {
-            printf("Input error. Please try again.\n");
-        }
-    }
-}
-
 // --------------------------------------------------------------------------------------------
 
 #define TOP_UP_TEN 1
@@ -1505,7 +1382,7 @@ int account_balance_management(void) {
     
     while (1) {
         // First show current balance and account status
-        Student students[10]; // 增加数组大小以防止越界
+        Student students[10]; // increase array size to prevent out-of-bound
         int count;
         int find_result = find_student(current_student_id, students, &count);
         
@@ -1539,18 +1416,19 @@ int account_balance_management(void) {
                 }
             }
         }
-        
-        printf("\n----- TOP UP ACCOUNT BALANCE -----\n");
-        printf("1. RM10\n");
-        printf("2. RM20\n");
-        printf("3. RM50\n");
-        printf("4. RM100\n");
-        printf("5. RM200\n");
-        printf("0. Cancel top up\n");
+
+        char prompt[] = "\n----- TOP UP ACCOUNT BALANCE -----\n"
+                "1. RM10\n"
+                "2. RM20\n"
+                "3. RM50\n"
+                "4. RM100\n"
+                "5. RM200\n"
+                "0. Cancel top up\n"
+                "Enter your choice (0 - 5): ";
         
         int choice;
         while (1) {
-            choice = get_integer_input("Enter your choice (0 - 5): ");
+            choice = get_integer_input(prompt);
             if (choice >= 0 && choice <= 5) {
                 break;
             } else {

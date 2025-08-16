@@ -17,14 +17,14 @@ const char* get_activation_status_text_admin(AccountActivateStatus status);
 int user_management(void) {
     int choice;
     while (1) {
-        printf("\n----- USER MANAGEMENT -----\n");
-        printf("1. View all users\n");
-        printf("2. Activate/Deactivate student accounts\n");
-        printf("3. Manage user details\n");
-        printf("0. Exit\n");
-        
-        choice = get_integer_input("What would you like to do? (0-3): ");
-        
+        char prompt[] = "\n----- USER MANAGEMENT -----\n"
+                        "1. View all users\n"
+                        "2. Activate/Deactive student accounts\n"
+                        "3. Manage user details\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-4): ";
+
+        choice = get_integer_input(prompt);
         switch (choice) {
             case VIEW_ALL_USERS:
                 view_all_users();
@@ -322,14 +322,14 @@ void manage_user_details(void) {
     int choice;
     
     while (1) {
-        printf("\n----- MANAGE USER DETAILS -----\n");
-        printf("1. Add new user account\n");
-        printf("2. Update user information\n");
-        printf("3. Delete user account\n");
-        printf("0. Exit\n");
-        
-        choice = get_integer_input("What would you like to do? (0-3): ");
-        
+        char prompt[] = "\n----- MANAGE USER DETAILS -----\n"
+                        "1. Add new user account\n"
+                        "2. Update user information\n"
+                        "3. Delete user account\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-3): ";
+
+        choice = get_integer_input(prompt);
         switch (choice) {
             case ADD_USER:
                 add_new_user_account();
@@ -1202,17 +1202,17 @@ int reporting_and_analytics(void) {
     int choice;
     
     while (1) {
-        printf("\n----- REPORTING AND ANALYTICS -----\n");
-        printf("1. View system overview\n");
-        printf("2. View user activity report\n");
-        printf("3. View revenue analytics\n");
-        printf("4. View performance dashboard\n");
-        printf("5. View detailed statistics\n");
-        printf("6. Export analytics report\n");
-        printf("0. Exit\n");
-        
-        choice = get_integer_input("What would you like to do?: ");
-        
+        char prompt[] = "\n----- REPORTING AND ANALYTICS -----\n"
+                        "1. View system overview\n"
+                        "2. View user activity report\n"
+                        "3. View revenue analytics\n"
+                        "4. View performance dashboard\n"
+                        "5. View detailed statistics\n"
+                        "6. Export analytics report\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-6): ";
+
+        choice = get_integer_input(prompt);
         switch (choice) {
             case VIEW_SYSTEM_OVERVIEW:
                 view_system_overview();
@@ -2080,18 +2080,18 @@ int data_backup_and_restore_functionality(void) {
     int choice;
     
     while (1) {
-        printf("\n----- DATA BACKUP AND RESTORE FUNCTIONALITY -----\n");
-        printf("1. Create new backup\n");
-        printf("2. Restore from backup\n");
-        printf("3. View backup list\n");
-        printf("4. Verify backup integrity\n");
-        printf("5. Manage backup settings\n");
-        printf("6. Cleanup old backups\n");
-        printf("7. Auto backup system\n");
-        printf("0. Exit\n");
-        
-        choice = get_integer_input("What would you like to do?: ");
-        
+        char prompt[] = "\n----- DATA BACKUP AND RESTORE FUNCTIONALITY -----\n"
+                        "1. Create new backup\n"
+                        "2. Restore from backup\n"
+                        "3. View backup list\n"
+                        "4. Verify backup integrity\n"
+                        "5. Manage backup settings\n"
+                        "6. Cleanup old backups\n"
+                        "7. Auto backup system\n"
+                        "0. Exit\n"
+                        "What would you like to do? (0-7): ";
+
+        choice = get_integer_input(prompt);
         switch (choice) {
             case CREATE_BACKUP:
                 create_new_backup();
@@ -2947,18 +2947,17 @@ int system_configuration_management(void) {
     load_config();
     
     while (1) {
-        printf("\n----- SYSTEM CONFIGURATION MANAGEMENT -----\n");
-        printf("1. View system settings\n");
-        printf("2. Modify system settings\n");
-        printf("3. View security settings\n");
-        printf("4. Modify security settings\n");
-        printf("5. View business settings\n");
-        printf("6. Modify business settings\n");
-        printf("7. Reset to defaults\n");
-        printf("0. Exit\n");
-        
-        choice = get_integer_input("What would you like to do?: ");
-        
+        char prompt[] = "\n----- SYSTEM CONFIGURATION MANAGEMENT -----\n"
+                        "1. View system settings\n"
+                        "2. Modify system settings\n"
+                        "3. View security settings\n"
+                        "4. Modify security settings\n"
+                        "5. View business settings\n"
+                        "6. Modify business settings\n"
+                        "7. Reset to defaults\n"
+                        "What would you like to do? (0-7): ";
+
+        choice = get_integer_input(prompt);
         switch (choice) {
             case VIEW_SYSTEM_SETTINGS:
                 view_system_settings();
