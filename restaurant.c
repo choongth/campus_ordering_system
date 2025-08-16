@@ -1022,7 +1022,6 @@ void view_daily_sales_summary(void);
 void view_item_sales_analysis(void);
 void view_hourly_sales_trend(void);
 void export_sales_report(void);
-int parse_order_items(char *order_id, ItemSales *items, int *item_count);
 void get_menu_item_name(char *restaurant_id, char *item_id, char *item_name);
 float get_menu_item_price(char *restaurant_id, char *item_id);
 int extract_hour_from_time(char *time_str);

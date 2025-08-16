@@ -1828,7 +1828,6 @@ void view_performance_ranking(void);
 int calculate_delivery_time_minutes(const char *order_time, const char *delivered_time);
 char calculate_performance_grade(float success_rate, float on_time_rate);
 void display_delivery_time_analysis(DeliveryTimeRecord *records, int count);
-void display_performance_trends(PerformanceMetrics *metrics);
 int find_performance_streak(char *delivery_personnel_id, int *current_streak, int *best_streak);
 
 #define VIEW_SUCCESS_RATE 1

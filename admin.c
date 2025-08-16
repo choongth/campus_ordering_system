@@ -8,7 +8,6 @@
 void view_all_users(void);
 void activate_deactivate_accounts(void);
 void manage_user_details(void);
-void display_all_users(void);
 void display_students_with_status(void);
 int update_student_activation_status(char *student_id, int new_status);
 const char* get_user_role_text(UserRole role);
@@ -22,7 +21,7 @@ int user_management(void) {
                         "2. Activate/Deactive student accounts\n"
                         "3. Manage user details\n"
                         "0. Exit\n"
-                        "What would you like to do? (0-4): ";
+                        "What would you like to do? (0-3): ";
 
         choice = get_integer_input(prompt);
         switch (choice) {
@@ -301,9 +300,6 @@ void display_user_details(UserDetail *users, int count);
 void add_new_user_account(void);
 void update_user_information(void);
 void delete_user_account(void);
-void reset_user_password(void);
-void view_user_details(void);
-void search_user_by_criteria(void);
 int find_user_by_id(char *user_id, UserDetail *user);
 int find_user_by_email(char *email, UserDetail *user);
 int update_user_in_files(UserDetail *user);
@@ -2041,7 +2037,7 @@ static const char* SYSTEM_DATA_FILES[] = {
     DELIVERY_PERSONNEL_FILE,
     DELIVERY_FILE,
     INVENTORY_FILE,
-    "config.txt"
+    CONFIG_FILE
 };
 
 #define SYSTEM_FILE_COUNT (sizeof(SYSTEM_DATA_FILES) / sizeof(SYSTEM_DATA_FILES[0]))
@@ -2049,7 +2045,6 @@ static const char* SYSTEM_DATA_FILES[] = {
 // Forward declarations for backup and restore
 int create_system_backup(char *backup_name);
 int restore_system_backup(char *backup_name);
-int verify_backup_integrity(char *backup_name);
 int list_available_backups(BackupInfo *backups, int *count);
 void display_backup_list(BackupInfo *backups, int count);
 void create_backup_directory(char *backup_name);
@@ -2058,23 +2053,12 @@ int restore_file_from_backup(const char *backup_file, const char *target_file);
 long get_file_size(const char *filename);
 void get_current_datetime(char *date_str, char *time_str);
 int validate_backup_name(char *backup_name);
-void cleanup_old_backups(int max_backups);
 void view_backup_details(char *backup_name);
 void create_new_backup(void);
 void restore_from_backup(void);
-void view_backup_list(void);
-void verify_backup(void);
-void manage_backup_settings(void);
-void cleanup_backups(void);
-int auto_backup_system(void);
 
 #define CREATE_BACKUP 1
 #define RESTORE_BACKUP 2
-#define VIEW_BACKUP_LIST 3
-#define VERIFY_BACKUP 4
-#define BACKUP_SETTINGS 5
-#define CLEANUP_BACKUPS 6
-#define AUTO_BACKUP 7
 
 int data_backup_and_restore_functionality(void) {
     int choice;
@@ -2083,13 +2067,8 @@ int data_backup_and_restore_functionality(void) {
         char prompt[] = "\n----- DATA BACKUP AND RESTORE FUNCTIONALITY -----\n"
                         "1. Create new backup\n"
                         "2. Restore from backup\n"
-                        "3. View backup list\n"
-                        "4. Verify backup integrity\n"
-                        "5. Manage backup settings\n"
-                        "6. Cleanup old backups\n"
-                        "7. Auto backup system\n"
                         "0. Exit\n"
-                        "What would you like to do? (0-7): ";
+                        "What would you like to do? (0-2): ";
 
         choice = get_integer_input(prompt);
         switch (choice) {
@@ -2098,21 +2077,6 @@ int data_backup_and_restore_functionality(void) {
                 break;
             case RESTORE_BACKUP:
                 restore_from_backup();
-                break;
-            case VIEW_BACKUP_LIST:
-                view_backup_list();
-                break;
-            case VERIFY_BACKUP:
-                verify_backup();
-                break;
-            case BACKUP_SETTINGS:
-                manage_backup_settings();
-                break;
-            case CLEANUP_BACKUPS:
-                cleanup_backups();
-                break;
-            case AUTO_BACKUP:
-                auto_backup_system();
                 break;
             case 0:
                 return 0;
@@ -2214,12 +2178,12 @@ int create_system_backup(char *backup_name) {
             if (copy_file_to_backup(filename, backup_name)) {
                 successful_files++;
                 total_size += get_file_size(filename);
-                printf("✓ Backed up: %s\n", filename);
+                printf("Backed up: %s\n", filename);
             } else {
-                printf("✗ Failed to backup: %s\n", filename);
+                printf("Failed to backup: %s\n", filename);
             }
         } else {
-            printf("⚠ File not found: %s (skipping)\n", filename);
+            printf("File not found: %s (skipping)\n", filename);
         }
     }
     
@@ -2289,12 +2253,12 @@ int restore_system_backup(char *backup_name) {
             // Restore file
             if (restore_file_from_backup(backup_file, filename)) {
                 successful_restores++;
-                printf("✓ Restored: %s\n", filename);
+                printf("Restored: %s\n", filename);
             } else {
-                printf("✗ Failed to restore: %s\n", filename);
+                printf("Failed to restore: %s\n", filename);
             }
         } else {
-            printf("⚠ Backup file not found: %s (skipping)\n", filename);
+            printf("Backup file not found: %s (skipping)\n", filename);
         }
     }
     
@@ -2303,91 +2267,23 @@ int restore_system_backup(char *backup_name) {
     printf("- Status: %s\n", (successful_restores == total_files) ? "Complete" : "Partial");
     
     if (successful_restores > 0) {
-        printf("\n⚠ IMPORTANT: System restart recommended after restore.\n");
+        printf("\nIMPORTANT: System restart recommended after restore.\n");
     }
     
     return (successful_restores > 0) ? 1 : 0;
-}
-
-// Function to verify backup integrity
-int verify_backup_integrity(char *backup_name) {
-    printf("Verifying backup integrity for '%s'...\n", backup_name);
-    
-    char backup_dir[150];
-    snprintf(backup_dir, sizeof(backup_dir), "backups\\%s", backup_name);
-    
-    // Check backup info file
-    char info_file[200];
-    snprintf(info_file, sizeof(info_file), "%s\\backup_info.txt", backup_dir);
-    
-    FILE *info_fp = fopen(info_file, "r");
-    if (info_fp == NULL) {
-        printf("✗ Backup info file missing - Invalid backup\n");
-        return 0;
-    }
-    fclose(info_fp);
-    printf("✓ Backup info file found\n");
-    
-    int verified_files = 0;
-    int total_expected = 0;
-    
-    // Verify each system file
-    for (int i = 0; i < SYSTEM_FILE_COUNT; i++) {
-        const char *filename = SYSTEM_DATA_FILES[i];
-        
-        char backup_file[250];
-        snprintf(backup_file, sizeof(backup_file), "%s\\%s", backup_dir, filename);
-        
-        FILE *fp = fopen(backup_file, "r");
-        if (fp != NULL) {
-            fclose(fp);
-            verified_files++;
-            printf("✓ Verified: %s\n", filename);
-        } else {
-            printf("✗ Missing: %s\n", filename);
-        }
-        total_expected++;
-    }
-    
-    printf("\nVerification Summary:\n");
-    printf("- Files verified: %d/%d\n", verified_files, total_expected);
-    printf("- Integrity: %s\n", (verified_files == total_expected) ? "Complete" : "Incomplete");
-    
-    return (verified_files > 0) ? 1 : 0;
 }
 
 // Function to list available backups
 int list_available_backups(BackupInfo *backups, int *count) {
     *count = 0;
     
-    // For simplification, we'll create sample backup data
-    // In a real system, this would scan the backup directory
-    
     // Sample backup 1
-    strcpy(backups[0].backup_name, "daily_backup_20241228");
-    strcpy(backups[0].backup_date, "28-12-2024");
-    strcpy(backups[0].backup_time, "16:30:00");
+    strcpy(backups[0].backup_name, "17Aug_backup");
+    strcpy(backups[0].backup_date, "17-08-2025");
+    strcpy(backups[0].backup_time, "12:30:00");
     backups[0].file_count = 10;
-    backups[0].total_size = 15420;
+    backups[0].total_size = 3245;
     strcpy(backups[0].status, "Complete");
-    (*count)++;
-    
-    // Sample backup 2
-    strcpy(backups[1].backup_name, "manual_backup_001");
-    strcpy(backups[1].backup_date, "27-12-2024");
-    strcpy(backups[1].backup_time, "14:15:00");
-    backups[1].file_count = 9;
-    backups[1].total_size = 14850;
-    strcpy(backups[1].status, "Partial");
-    (*count)++;
-    
-    // Sample backup 3
-    strcpy(backups[2].backup_name, "system_backup_v1");
-    strcpy(backups[2].backup_date, "26-12-2024");
-    strcpy(backups[2].backup_time, "10:00:00");
-    backups[2].file_count = 10;
-    backups[2].total_size = 16200;
-    strcpy(backups[2].status, "Complete");
     (*count)++;
     
     return *count;
@@ -2461,9 +2357,9 @@ void create_new_backup(void) {
     int confirm = confirmation("Continue with backup creation? (1=Yes, 2=No): ");
     if (confirm == 1) {
         if (create_system_backup(backup_name)) {
-            printf("\n✓ Backup '%s' created successfully!\n", backup_name);
+            printf("\nBackup '%s' created successfully!\n", backup_name);
         } else {
-            printf("\n✗ Backup creation failed or incomplete.\n");
+            printf("\nBackup creation failed or incomplete.\n");
         }
     } else {
         printf("Backup creation cancelled.\n");
@@ -2510,7 +2406,7 @@ void restore_from_backup(void) {
     
     char *selected_backup = backups[backup_choice - 1].backup_name;
     
-    printf("\n⚠ WARNING: This will overwrite current system data!\n");
+    printf("\nWARNING: This will overwrite current system data!\n");
     printf("Selected backup: %s\n", selected_backup);
     printf("Backup date: %s %s\n", backups[backup_choice - 1].backup_date, backups[backup_choice - 1].backup_time);
     printf("Files in backup: %d\n", backups[backup_choice - 1].file_count);
@@ -2520,125 +2416,13 @@ void restore_from_backup(void) {
         printf("\nStarting restore process...\n");
         
         if (restore_system_backup(selected_backup)) {
-            printf("\n✓ System restored successfully from backup '%s'!\n", selected_backup);
-            printf("⚠ Please restart the system to ensure all changes take effect.\n");
+            printf("\nSystem restored successfully from backup '%s'!\n", selected_backup);
+            printf("Please restart the system to ensure all changes take effect.\n");
         } else {
-            printf("\n✗ Restore failed or incomplete.\n");
+            printf("\nRestore failed or incomplete.\n");
         }
     } else {
         printf("Restore cancelled.\n");
-    }
-    
-    int exit_choice;
-    while (1) {
-        exit_choice = get_integer_input("\nEnter 0 to exit: ");
-        if (exit_choice == 0) {
-            break;
-        } else {
-            printf("Invalid input! Please enter 0 to exit.\n");
-        }
-    }
-}
-
-// Function to view backup list
-void view_backup_list(void) {
-    printf("\n----- BACKUP LIST -----\n");
-    
-    BackupInfo backups[50];
-    int count;
-    
-    if (list_available_backups(backups, &count) > 0) {
-        display_backup_list(backups, count);
-        
-        printf("\n--- BACKUP MANAGEMENT OPTIONS ---\n");
-        printf("1. View detailed backup info\n");
-        printf("2. Delete a backup\n");
-        printf("0. Exit\n");
-        
-        int choice = get_integer_input("Select option: ");
-        
-        switch (choice) {
-            case 1: {
-                int backup_num = get_integer_input("Enter backup number for details: ");
-                if (backup_num >= 1 && backup_num <= count) {
-                    view_backup_details(backups[backup_num - 1].backup_name);
-                } else {
-                    printf("Invalid backup number.\n");
-                }
-                break;
-            }
-            case 2: {
-                int backup_num = get_integer_input("Enter backup number to delete: ");
-                if (backup_num >= 1 && backup_num <= count) {
-                    printf("Selected backup: %s\n", backups[backup_num - 1].backup_name);
-                    int confirm = confirmation("Are you sure you want to delete this backup? (1=Yes, 2=No): ");
-                    if (confirm == 1) {
-                        char command[200];
-                        snprintf(command, sizeof(command), "rmdir /s /q \"backups\\%s\" 2>nul", 
-                                backups[backup_num - 1].backup_name);
-                        if (system(command) == 0) {
-                            printf("Backup deleted successfully.\n");
-                        } else {
-                            printf("Failed to delete backup.\n");
-                        }
-                    }
-                } else {
-                    printf("Invalid backup number.\n");
-                }
-                break;
-            }
-        }
-    } else {
-        printf("No backups found.\n");
-    }
-    
-    int exit_choice;
-    while (1) {
-        exit_choice = get_integer_input("\nEnter 0 to exit: ");
-        if (exit_choice == 0) {
-            break;
-        } else {
-            printf("Invalid input! Please enter 0 to exit.\n");
-        }
-    }
-}
-
-// Function to verify backup
-void verify_backup(void) {
-    printf("\n----- VERIFY BACKUP INTEGRITY -----\n");
-    
-    BackupInfo backups[50];
-    int count;
-    
-    if (list_available_backups(backups, &count) == 0) {
-        printf("No backups available for verification.\n");
-        return;
-    }
-    
-    display_backup_list(backups, count);
-    
-    int backup_choice;
-    while (1) {
-        backup_choice = get_integer_input("Select backup number to verify (0 to cancel): ");
-        if (backup_choice >= 0 && backup_choice <= count) {
-            break;
-        }
-        printf("Invalid choice. Please select a number between 1 and %d.\n", count);
-    }
-    
-    if (backup_choice == 0) {
-        printf("Verification cancelled.\n");
-        return;
-    }
-    
-    char *selected_backup = backups[backup_choice - 1].backup_name;
-    
-    printf("\nVerifying backup: %s\n", selected_backup);
-    
-    if (verify_backup_integrity(selected_backup)) {
-        printf("\n✓ Backup verification completed.\n");
-    } else {
-        printf("\n✗ Backup verification failed or backup is corrupted.\n");
     }
     
     int exit_choice;
@@ -2683,232 +2467,13 @@ void view_backup_details(char *backup_name) {
         if (file_fp != NULL) {
             fclose(file_fp);
             long size = get_file_size(backup_file);
-            printf("✓ %s (%ld bytes)\n", filename, size);
+            printf("%s (%ld bytes)\n", filename, size);
         } else {
-            printf("✗ %s (missing)\n", filename);
+            printf("%s (missing)\n", filename);
         }
     }
     
     printf("=========================================================\n");
-}
-
-// Function to manage backup settings
-void manage_backup_settings(void) {
-    printf("\n----- BACKUP SETTINGS -----\n");
-    printf("1. View current backup settings\n");
-    printf("2. Configure auto-backup schedule\n");
-    printf("3. Set backup retention policy\n");
-    printf("4. Configure backup location\n");
-    printf("0. Exit\n");
-    
-    int choice = get_integer_input("Select option: ");
-    
-    switch (choice) {
-        case 1:
-            printf("\n--- CURRENT BACKUP SETTINGS ---\n");
-            printf("Backup Location: .\\backups\\\n");
-            printf("Auto-backup: Enabled (Daily at 02:00)\n");
-            printf("Retention Policy: Keep 7 backups\n");
-            printf("Compression: Disabled\n");
-            printf("Verification: Enabled\n");
-            break;
-            
-        case 2:
-            printf("\n--- AUTO-BACKUP SCHEDULE ---\n");
-            printf("Current schedule: Daily at 02:00\n");
-            printf("1. Daily\n");
-            printf("2. Weekly\n");
-            printf("3. Disabled\n");
-            
-            int schedule = get_integer_input("Select schedule: ");
-            switch (schedule) {
-                case 1:
-                    printf("Auto-backup set to daily.\n");
-                    break;
-                case 2:
-                    printf("Auto-backup set to weekly.\n");
-                    break;
-                case 3:
-                    printf("Auto-backup disabled.\n");
-                    break;
-                default:
-                    printf("Invalid choice.\n");
-            }
-            break;
-            
-        case 3:
-            printf("\n--- RETENTION POLICY ---\n");
-            printf("Current policy: Keep 7 backups\n");
-            int retention = get_integer_input("Enter number of backups to keep (1-30): ");
-            if (retention >= 1 && retention <= 30) {
-                printf("Retention policy updated to keep %d backups.\n", retention);
-            } else {
-                printf("Invalid retention count.\n");
-            }
-            break;
-            
-        case 4:
-            printf("\n--- BACKUP LOCATION ---\n");
-            printf("Current location: .\\backups\\\n");
-            char location[200];
-            if (!safe_string_input("Enter new backup location: ", location, sizeof(location))) {
-                printf("Invalid location format.\n");
-                break;
-            }
-            printf("Backup location updated to: %s\n", location);
-            break;
-            
-        default:
-            printf("Invalid choice.\n");
-    }
-    
-    int exit_choice;
-    while (1) {
-        exit_choice = get_integer_input("\nEnter 0 to exit: ");
-        if (exit_choice == 0) {
-            break;
-        } else {
-            printf("Invalid input! Please enter 0 to exit.\n");
-        }
-    }
-}
-
-// Function to cleanup old backups
-void cleanup_backups(void) {
-    printf("\n----- CLEANUP OLD BACKUPS -----\n");
-    
-    BackupInfo backups[50];
-    int count;
-    
-    if (list_available_backups(backups, &count) == 0) {
-        printf("No backups found to cleanup.\n");
-        return;
-    }
-    
-    printf("Current backups: %d\n", count);
-    
-    if (count <= 3) {
-        printf("Only %d backups found. Cleanup not recommended.\n", count);
-        return;
-    }
-    
-    printf("Cleanup options:\n");
-    printf("1. Keep latest 3 backups\n");
-    printf("2. Keep latest 5 backups\n");
-    printf("3. Delete specific backup\n");
-    printf("4. Delete all backups (DANGEROUS)\n");
-    
-    int choice = get_integer_input("Select cleanup option: ");
-    
-    switch (choice) {
-        case 1:
-        case 2: {
-            int keep_count = (choice == 1) ? 3 : 5;
-            if (count > keep_count) {
-                printf("This will delete %d old backups, keeping the latest %d.\n", 
-                       count - keep_count, keep_count);
-                int confirm = confirmation("Continue with cleanup? (1=Yes, 2=No): ");
-                if (confirm == 1) {
-                    // In a real implementation, this would delete old backups
-                    printf("Cleanup completed. Kept %d latest backups.\n", keep_count);
-                } else {
-                    printf("Cleanup cancelled.\n");
-                }
-            } else {
-                printf("Only %d backups found. No cleanup needed.\n", count);
-            }
-            break;
-        }
-        
-        case 3:
-            display_backup_list(backups, count);
-            int backup_num = get_integer_input("Enter backup number to delete: ");
-            if (backup_num >= 1 && backup_num <= count) {
-                printf("Selected backup: %s\n", backups[backup_num - 1].backup_name);
-                int confirm = confirmation("Delete this backup? (1=Yes, 2=No): ");
-                if (confirm == 1) {
-                    printf("Backup deleted successfully.\n");
-                }
-            } else {
-                printf("Invalid backup number.\n");
-            }
-            break;
-            
-        case 4:
-            printf("⚠ WARNING: This will delete ALL backups!\n");
-            printf("This action cannot be undone.\n");
-            int confirm = confirmation("Are you absolutely sure? (1=Yes, 2=No): ");
-            if (confirm == 1) {
-                int double_confirm = confirmation("Type 1 again to confirm deletion of ALL backups: ");
-                if (double_confirm == 1) {
-                    // In a real implementation, this would delete all backups
-                    printf("All backups deleted.\n");
-                } else {
-                    printf("Deletion cancelled.\n");
-                }
-            } else {
-                printf("Deletion cancelled.\n");
-            }
-            break;
-            
-        default:
-            printf("Invalid choice.\n");
-    }
-    
-    int exit_choice;
-    while (1) {
-        exit_choice = get_integer_input("\nEnter 0 to exit: ");
-        if (exit_choice == 0) {
-            break;
-        } else {
-            printf("Invalid input! Please enter 0 to exit.\n");
-        }
-    }
-}
-
-// Function for auto backup system
-int auto_backup_system(void) {
-    printf("\n----- AUTO BACKUP SYSTEM -----\n");
-    
-    char auto_backup_name[100];
-    char date[DATE_LENGTH], time[TIME_LENGTH];
-    get_current_datetime(date, time);
-    
-    // Generate automatic backup name
-    snprintf(auto_backup_name, sizeof(auto_backup_name), "auto_backup_%s_%s", date, time);
-    
-    // Replace colons and hyphens for valid filename
-    for (int i = 0; auto_backup_name[i] != '\0'; i++) {
-        if (auto_backup_name[i] == ':' || auto_backup_name[i] == '-') {
-            auto_backup_name[i] = '_';
-        }
-    }
-    
-    printf("Starting automatic system backup...\n");
-    printf("Backup name: %s\n", auto_backup_name);
-    
-    if (create_system_backup(auto_backup_name)) {
-        printf("\n✓ Automatic backup completed successfully!\n");
-        
-        // Cleanup old auto backups (keep only 5)
-        printf("Cleaning up old automatic backups...\n");
-        cleanup_old_backups(5);
-        
-        printf("Auto backup process completed.\n");
-        return 1;
-    } else {
-        printf("\nAutomatic backup failed.\n");
-        return 0;
-    }
-}
-
-// Function to cleanup old backups (internal)
-void cleanup_old_backups(int max_backups) {
-    // In a real implementation, this would:
-    // 1. List all backups sorted by date
-    // 2. Keep the latest max_backups
-    // 3. Delete older backups
-    printf("Cleanup policy: Keep %d latest backups\n", max_backups);
 }
 
 // ----------------------------------------------------------------------------------------------
@@ -2929,8 +2494,6 @@ void view_security_settings(void);
 void modify_security_settings(void);
 void view_business_settings(void);
 void modify_business_settings(void);
-void view_performance_settings(void);
-void modify_performance_settings(void);
 
 #define VIEW_SYSTEM_SETTINGS 1
 #define MODIFY_SYSTEM_SETTINGS 2
@@ -2991,7 +2554,7 @@ int system_configuration_management(void) {
 
 // Function to load configuration from file
 void load_config(void) {
-    FILE *fp = fopen("config.txt", "r");
+    FILE *fp = fopen(CONFIG_FILE, "r");
     if (fp == NULL) {
         printf("Configuration file not found. Loading default settings...\n");
         reset_to_defaults();
@@ -3039,7 +2602,7 @@ void load_config(void) {
 
 // Function to save configuration to file
 void save_config(void) {
-    FILE *fp = fopen("config.txt", "w");
+    FILE *fp = fopen(CONFIG_FILE, "w");
     if (fp == NULL) {
         printf("Error: Could not save configuration file.\n");
         return;

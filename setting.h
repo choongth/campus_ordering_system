@@ -10,6 +10,7 @@
 #define DELIVERY_PERSONNEL_FILE "Delivery Personnel.txt"
 #define DELIVERY_FILE "Delivery.txt"
 #define INVENTORY_FILE "Inventory.txt"
+#define CONFIG_FILE "config.txt"
 
 #define NAME_LENGTH 50
 #define CONTACT_NUMBER_LENGTH 12 // max 11 digits + 1 terminator
