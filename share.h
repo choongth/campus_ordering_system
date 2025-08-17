@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <time.h>
 
 #include "setting.h"
 #include "enums.h"

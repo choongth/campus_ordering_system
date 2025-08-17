@@ -483,7 +483,7 @@ int accept_order_assignment(void) {
     // Check if delivery personnel is already assigned to an order
     int current_status = get_delivery_personnel_status(current_delivery_personnel_id);
     if (current_status == DELIVERING_ORDER) {
-        printf("You are already assigned to a delivery. Complete current delivery first.\n");
+        printf("\nYou are already assigned to a delivery. Complete current delivery first.\n");
         return 0;
     }
     
@@ -622,7 +622,6 @@ void view_delivery_details(void) {
 int find_my_deliveries(char *delivery_personnel_id, DeliveryStatusInfo *deliveries, int *count);
 void display_delivery_status(DeliveryStatusInfo *deliveries, int count);
 void view_current_deliveries(void);
-int update_delivery_status_action(void);
 int mark_order_as_delivered(void);
 int report_delivery_issue(void);
 int update_estimated_arrival_time(void);
@@ -633,30 +632,25 @@ const char* get_punctuality_status_text(PunctualityStatus status);
 void get_current_time(char *time_str, int size);
 
 #define VIEW_CURRENT_DELIVERIES 1
-#define UPDATE_DELIVERY_STATUS 2
-#define MARK_AS_DELIVERED 3
-#define REPORT_DELIVERY_ISSUE 4
-#define UPDATE_ETA 5
+#define MARK_AS_DELIVERED 2
+#define REPORT_DELIVERY_ISSUE 3
+#define UPDATE_ETA 4
 
 int delivery_status_management(void) {
     int choice;
     while (1) {
         char prompt[] = "\n----- DELIVERY STATUS MANAGEMENT -----\n"
                         "1. View current deliveries\n"
-                        "2. Update delivery status\n"
-                        "3. Mark order as delivered\n"
-                        "4. Report delivery issue\n"
-                        "5. Update estimated arrival time (ETA)\n"
+                        "2. Mark order as delivered\n"
+                        "3. Report delivery issue\n"
+                        "4. Update estimated arrival time (ETA)\n"
                         "0. Exit\n"
-                        "What would you like to do? (0-5): ";
+                        "What would you like to do? (0-4): ";
 
         choice = get_integer_input(prompt);        
         switch (choice) {
             case VIEW_CURRENT_DELIVERIES:
                 view_current_deliveries();
-                break;
-            case UPDATE_DELIVERY_STATUS:
-                update_delivery_status_action();
                 break;
             case MARK_AS_DELIVERED:
                 mark_order_as_delivered();
@@ -694,94 +688,132 @@ const char* get_punctuality_status_text(PunctualityStatus status) {
     }
 }
 
-// Function to get current time (simplified)
-void get_current_time(char *time_str, int size) {
-    // For simplicity, using a fixed current time
-    // In a real system, this would get actual current time
-    snprintf(time_str, size, "16:30:00");
+// Function to get current time
+void get_current_time(char *time_str, int time_size) {
+    time_t t;
+    struct tm *tm_info;
+
+    time(&t);                       // Get current time
+    tm_info = localtime(&t);        // Convert to local time
+
+    // format time as HH:MM:SS
+    strftime(time_str, time_size, "%H:%M:%S", tm_info);
+}
+
+// This function tokenizes a line and handles empty fields by setting the token to an empty string.
+void parse_delivery_file_line(char *line, char **fields) {
+    char *token;
+    int i = 0;
+    
+    // First token is special, using the original line
+    token = strtok(line, ",");
+    fields[i++] = token;
+
+    // Subsequent tokens use NULL to continue on the same string
+    while ((token = strtok(NULL, ",")) != NULL && i < 7) {
+        fields[i++] = token;
+    }
+    
+    // Fill remaining fields with empty strings if they were missing
+    for (; i < 7; i++) {
+        fields[i] = "";
+    }
 }
 
 // Function to find deliveries for current delivery personnel
 int find_my_deliveries(char *delivery_personnel_id, DeliveryStatusInfo *deliveries, int *count) {
+    *count = 0;
+    char assigned_delivery_id[DELIVERY_ID_LENGTH] = "";
+    int personnel_found = 0;
+
+    // First, find the delivery personnel's assigned delivery ID
+    FILE *personnel_fp = fopen(DELIVERY_PERSONNEL_FILE, "r");
+    if (personnel_fp != NULL) {
+        char personnel_line[MAX_LINE_LENGTH];
+        while (fgets(personnel_line, sizeof(personnel_line), personnel_fp)) {
+            char pid[DELIVERY_PERSONNEL_ID_LENGTH], name[NAME_LENGTH];
+            char contact[CONTACT_NUMBER_LENGTH], email[EMAIL_ADDRESS_LENGTH], password[PASSWORD_LENGTH];
+            int status;
+            char temp_assigned_id[DELIVERY_ID_LENGTH];
+            
+            // Use sscanf here as the Delivery Personnel file is structured and non-empty
+            if (sscanf(personnel_line, "%[^,],%[^,],%[^,],%[^,],%[^,],%d,%s",
+                   pid, name, contact, email, password, &status, temp_assigned_id) == 7) {
+                if (strcmp(pid, delivery_personnel_id) == 0 && status == DELIVERING_ORDER) {
+                    strcpy(assigned_delivery_id, temp_assigned_id);
+                    personnel_found = 1;
+                    break;
+                }
+            }
+        }
+        fclose(personnel_fp);
+    } else {
+        printf("Error: Could not open '%s' file.\n", DELIVERY_PERSONNEL_FILE);
+        return FILE_ERROR;
+    }
+
+    if (!personnel_found) {
+        return 0; // No delivery currently assigned to this personnel
+    }
+    
+    // Now, find the delivery record using the assigned_delivery_id
     FILE *delivery_fp = fopen(DELIVERY_FILE, "r");
     if (delivery_fp == NULL) {
         printf("Error: Could not open '%s' file.\n", DELIVERY_FILE);
         return FILE_ERROR;
     }
-
-    *count = 0;
-    char line[MAX_LINE_LENGTH];
     
-    // Get delivery records for this personnel
+    char line[MAX_LINE_LENGTH];
     while (fgets(line, sizeof(line), delivery_fp) && *count < 100) {
         line[strcspn(line, "\n")] = '\0';
         
-        char delivery_id[DELIVERY_ID_LENGTH], order_id[ORDER_ID_LENGTH];
-        char delivery_date[DATE_LENGTH], eta[TIME_LENGTH], delivered_time[TIME_LENGTH];
-        int delivery_status, punctuality_status;
+        char *fields[7];
+        char temp_line[MAX_LINE_LENGTH];
+        strcpy(temp_line, line);
         
-        sscanf(line, "%[^,],%[^,],%[^,],%[^,],%[^,],%d,%d",
-               delivery_id, order_id, delivery_date, eta, delivered_time,
-               &delivery_status, &punctuality_status);
+        parse_delivery_file_line(temp_line, fields);
         
-        // Check if this delivery belongs to current personnel
-        FILE *personnel_fp = fopen(DELIVERY_PERSONNEL_FILE, "r");
-        if (personnel_fp != NULL) {
-            char personnel_line[MAX_LINE_LENGTH];
-            while (fgets(personnel_line, sizeof(personnel_line), personnel_fp)) {
-                char pid[DELIVERY_PERSONNEL_ID_LENGTH], name[NAME_LENGTH];
-                char contact[CONTACT_NUMBER_LENGTH], email[EMAIL_ADDRESS_LENGTH], password[PASSWORD_LENGTH];
-                int status;
-                char assigned_delivery_id[DELIVERY_ID_LENGTH];
-                
-                sscanf(personnel_line, "%[^,],%[^,],%[^,],%[^,],%[^,],%d,%s",
-                       pid, name, contact, email, password, &status, assigned_delivery_id);
-                
-                if (strcmp(pid, delivery_personnel_id) == 0 && 
-                    (strcmp(assigned_delivery_id, delivery_id) == 0 || status == DELIVERING_ORDER)) {
+        // Ensure all fields were successfully parsed
+        if (strcmp(fields[0], assigned_delivery_id) == 0) {
+            // Get order details
+            FILE *order_fp = fopen(ORDER_FILE, "r");
+            if (order_fp != NULL) {
+                char order_line[MAX_LINE_LENGTH];
+                while (fgets(order_line, sizeof(order_line), order_fp)) {
+                    char oid[ORDER_ID_LENGTH], student_id[STUDENT_ID_LENGTH];
+                    char restaurant_id[RESTAURANT_ID_LENGTH], order_status[20];
+                    float total_price;
+                    char order_date[DATE_LENGTH], order_time[TIME_LENGTH];
                     
-                    // Get order details
-                    FILE *order_fp = fopen(ORDER_FILE, "r");
-                    if (order_fp != NULL) {
-                        char order_line[MAX_LINE_LENGTH];
-                        while (fgets(order_line, sizeof(order_line), order_fp)) {
-                            char oid[ORDER_ID_LENGTH], student_id[STUDENT_ID_LENGTH];
-                            char restaurant_id[RESTAURANT_ID_LENGTH], order_status[20];
-                            float total_price;
-                            char order_date[DATE_LENGTH], order_time[TIME_LENGTH];
+                    if (sscanf(order_line, "%[^,],%[^,],%[^,],%f,%[^,],%[^,],%s",
+                           oid, student_id, restaurant_id, &total_price,
+                           order_date, order_time, order_status) == 7) {
+                        if (strcmp(oid, fields[1]) == 0) {
+                            // Fill delivery status info
+                            strcpy(deliveries[*count].delivery_id, fields[0]);
+                            strcpy(deliveries[*count].order_id, fields[1]);
+                            strcpy(deliveries[*count].delivery_date, fields[2]);
+                            strcpy(deliveries[*count].estimated_time_arrival, fields[3]);
+                            strcpy(deliveries[*count].delivered_time, fields[4]);
+                            deliveries[*count].delivery_status = (DeliveryStatus)atoi(fields[5]);
+                            deliveries[*count].punctuality_status = (PunctualityStatus)atoi(fields[6]);
+                            deliveries[*count].order_total = total_price;
                             
-                            sscanf(order_line, "%[^,],%[^,],%[^,],%f,%[^,],%[^,],%s",
-                                   oid, student_id, restaurant_id, &total_price,
-                                   order_date, order_time, order_status);
+                            // Get restaurant and student names
+                            get_restaurant_info(restaurant_id, deliveries[*count].restaurant_name, NULL);
+                            get_student_info(student_id, deliveries[*count].student_name, NULL);
                             
-                            if (strcmp(oid, order_id) == 0) {
-                                // Fill delivery status info
-                                strcpy(deliveries[*count].delivery_id, delivery_id);
-                                strcpy(deliveries[*count].order_id, order_id);
-                                strcpy(deliveries[*count].delivery_date, delivery_date);
-                                strcpy(deliveries[*count].estimated_time_arrival, eta);
-                                strcpy(deliveries[*count].delivered_time, delivered_time);
-                                deliveries[*count].delivery_status = (DeliveryStatus)delivery_status;
-                                deliveries[*count].punctuality_status = (PunctualityStatus)punctuality_status;
-                                deliveries[*count].order_total = total_price;
-                                
-                                // Get restaurant and student names
-                                get_restaurant_info(restaurant_id, deliveries[*count].restaurant_name, NULL);
-                                get_student_info(student_id, deliveries[*count].student_name, NULL);
-                                
-                                // Get items summary
-                                get_order_items_summary(order_id, deliveries[*count].items_summary, sizeof(deliveries[*count].items_summary));
-                                
-                                (*count)++;
-                                break;
-                            }
+                            // Get items summary
+                            get_order_items_summary(oid, deliveries[*count].items_summary, sizeof(deliveries[*count].items_summary));
+                            
+                            (*count)++;
+                            break;
                         }
-                        fclose(order_fp);
                     }
-                    break;
                 }
+                fclose(order_fp);
             }
-            fclose(personnel_fp);
+            break; // Found the delivery, exit loop
         }
     }
     
@@ -802,7 +834,7 @@ void display_delivery_status(DeliveryStatusInfo *deliveries, int count) {
     printf("---------------------------------------------------------------------------------------\n");
     
     for (int i = 0; i < count; i++) {
-        const char *delivered_time = strlen(deliveries[i].delivered_time) > 0 ? 
+        const char *delivered_time = strlen(deliveries[i].delivered_time) > 1 ? 
                                    deliveries[i].delivered_time : "Pending";
         
         printf("%-4d %-8s %-8s %-15s %-12s %-10s %-12s %-10s\n", 
@@ -892,9 +924,7 @@ int update_delivery_status_in_file(const char *delivery_id, DeliveryStatus new_s
 
         if (strcmp(did, delivery_id) == 0) {
             // Update delivery status and set delivered time if marking as delivered
-            if (new_status == DELIVERED && strlen(delivered_time) == 0) {
-                get_current_time(delivered_time, sizeof(delivered_time));
-            }
+            get_current_time(delivered_time, sizeof(delivered_time));
             
             fprintf(temp_fp, "%s,%s,%s,%s,%s,%d,%d\n",
                     did, order_id, delivery_date, eta, delivered_time,
@@ -913,94 +943,11 @@ int update_delivery_status_in_file(const char *delivery_id, DeliveryStatus new_s
     if (updated) {
         remove(DELIVERY_FILE);
         rename("temp_delivery.txt", DELIVERY_FILE);
-        printf("Delivery status updated successfully!\n");
+        printf("\nDelivery status updated successfully!\n");
         return 1;
     } else {
         remove("temp_delivery.txt");
         printf("Delivery not found for status update.\n");
-        return 0;
-    }
-}
-
-// Function to update delivery status
-int update_delivery_status_action(void) {
-    DeliveryStatusInfo deliveries[100];
-    int count;
-    
-    printf("\n----- UPDATE DELIVERY STATUS -----\n");
-    
-    if (find_my_deliveries(current_delivery_personnel_id, deliveries, &count) == FILE_ERROR) {
-        return 0;
-    }
-    
-    // Filter to show only active deliveries
-    DeliveryStatusInfo active_deliveries[100];
-    int active_count = 0;
-    
-    for (int i = 0; i < count; i++) {
-        if (deliveries[i].delivery_status != DELIVERED) {
-            active_deliveries[active_count] = deliveries[i];
-            active_count++;
-        }
-    }
-    
-    if (active_count == 0) {
-        printf("No active deliveries found to update.\n");
-        return 0;
-    }
-    
-    display_delivery_status(active_deliveries, active_count);
-    
-    int update_choice;
-    while (1) {
-        update_choice = get_integer_input("Select delivery number to update (enter '0' to exit): ");
-        if (update_choice >= 0 && update_choice <= active_count) {
-            break;
-        }
-        printf("Invalid input. Please enter a number between 1 and %d.\n", active_count);
-    }
-    
-    if (update_choice == 0) {
-        return 0;
-    }
-    
-    DeliveryStatusInfo selected_delivery;
-    get_delivery_by_number(active_deliveries, active_count, update_choice, &selected_delivery);
-    
-    printf("\nSelected Delivery: %s\n", selected_delivery.delivery_id);
-    printf("Current Status: %s\n", get_delivery_status_text(selected_delivery.delivery_status));
-    printf("Order: %s\n", selected_delivery.items_summary);
-    
-    printf("\nAvailable Status Options:\n");
-    printf("1. UNDELIVERED - Order not yet picked up\n");
-    printf("2. DELIVERING - Currently delivering the order\n");
-    printf("3. DELIVERED - Order has been delivered\n");
-    
-    int status_choice = get_integer_input("Select new status (1-3): ");
-    
-    DeliveryStatus new_status;
-    switch (status_choice) {
-        case 1: new_status = UNDELIVERED; break;
-        case 2: new_status = DELIVERING; break;
-        case 3: new_status = DELIVERED; break;
-        default:
-            printf("Invalid status choice.\n");
-            return 0;
-    }
-    
-    int confirm = confirmation("Are you sure you want to update this delivery status? (1. Yes / 2. No): ");
-    if (confirm == 1) {
-        int result = update_delivery_status_in_file(selected_delivery.delivery_id, new_status);
-        
-        // If marking as delivered, update personnel status to available
-        if (new_status == DELIVERED && result == 1) {
-            update_delivery_personnel_status(current_delivery_personnel_id, NO_ORDER_ASSIGNED, "none");
-            printf("You are now available for new deliveries.\n");
-        }
-        
-        return result;
-    } else {
-        printf("Delivery status update cancelled.\n");
         return 0;
     }
 }
@@ -1063,7 +1010,7 @@ int mark_order_as_delivered(void) {
         if (result == 1) {
             // Update personnel status to available
             update_delivery_personnel_status(current_delivery_personnel_id, NO_ORDER_ASSIGNED, "none");
-            printf("Order marked as delivered successfully!\n");
+            printf("\nOrder marked as delivered successfully!\n");
             printf("You have earned RM%.2f for this delivery.\n", selected_delivery.order_total * 0.1);
             printf("You are now available for new deliveries.\n");
         }
@@ -1350,11 +1297,15 @@ int earnings_calculation_and_tracking(void) {
     }
 }
 
-// Function to get current date (simplified)
-void get_current_date(char *date_str, int size) {
-    // For simplicity, using a fixed current date
-    // In a real system, this would get actual current date
-    snprintf(date_str, size, "28-12-2024");
+void get_current_date(char *date_str, int date_size) {
+    time_t t;
+    struct tm *tm_info;
+
+    time(&t);                       // Get current time
+    tm_info = localtime(&t);        // Convert to local time
+
+    // format date as DD-MM-YYYY
+    strftime(date_str, date_size, "%d-%m-%Y", tm_info);
 }
 
 // Function to calculate base delivery fee

@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <ctype.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "setting.h"
 #include "enums.h"
@@ -33,16 +34,6 @@ typedef struct Inventory {
     float inventory_price;
     int inventory_amount;
 } Inventory;
-
-typedef struct Order {
-    char order_id[ORDER_ID_LENGTH];
-    char item_id[10][MENU_ITEM_ID_LENGTH]; // maximum 10 types of food/drinks
-    int item_amount[10];
-    float total_price;
-    char order_date[DATE_LENGTH];
-    char order_time[TIME_LENGTH];
-    char restaurant_id[RESTAURANT_ID_LENGTH];
-} Order;
 
 typedef struct DailySales {
     char date[DATE_LENGTH];

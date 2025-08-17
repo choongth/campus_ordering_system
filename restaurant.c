@@ -178,16 +178,15 @@ void get_menu_item_id(char *id, int id_size, char *restaurant_id) {
         char line_copy[MAX_LINE_LENGTH];
         strncpy(line_copy, line, sizeof(line_copy));
         
+        // First token = restaurant id (ignore it)
         char *rest_id_token = strtok(line_copy, ",");
         if (!rest_id_token) continue;
         
-        // Only check menu items for the current restaurant
-        if (strcmp(rest_id_token, restaurant_id) == 0) {
-            char *menu_id_token = strtok(NULL, ",");
-            if (menu_id_token && menu_id_token[0] == 'M') {
-                int num = atoi(&menu_id_token[1]);
-                if (num > max_num) max_num = num;
-            }
+        // Second token = menu id
+        char *menu_id_token = strtok(NULL, ",");
+        if (menu_id_token && menu_id_token[0] == 'M') {
+            int num = atoi(&menu_id_token[1]);
+            if (num > max_num) max_num = num;
         }
     }
     fclose(fp);
@@ -1066,11 +1065,19 @@ int daily_sales_report(void) {
     }
 }
 
-// Function to get current date (simplified)
+// Function to get current date
 void get_current_date_restaurant(char *date_str) {
-    // For demonstration, using a fixed current date
-    // In a real system, this would get actual current date
-    strcpy(date_str, "28-12-2024");
+    time_t t;
+    struct tm *tm_info;
+    char buffer[11];  // Enough for "DD-MM-YYYY" + '\0'
+
+    time(&t);                       // Get current time
+    tm_info = localtime(&t);        // Convert to local time
+
+    strftime(buffer, sizeof(buffer), "%d-%m-%Y", tm_info);
+
+    printf("Current Date: %s\n", buffer);
+    strcpy(date_str, buffer);
 }
 
 // Function to extract hour from time string

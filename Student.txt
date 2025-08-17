@@ -1,5 +1,5 @@
 S000001,Choong Ti Huai,01139457703,tihuaichoong@gmail.com,tihuai414,1,301.60
 S000002,Liu Wei,0123456789,liuwei@gmail.com,liuwei123,2,0.00
-S000003,Test Student,01234567890,test@gmail.com,test123,1,50.00
+S000003,William Lim,01234567890,williamlim@gmail.com,williamlim,1,50.00
 S000004,Chin Jun Lin,0184736593,junlin@gmail.com,junlin234,2,0.00
-S000005,John Doe,0198447593,johndoe@gmail.com,johndoe,1,55.50
+S000005,John Doe,0198447593,johndoe@gmail.com,johndoe,1,232.50

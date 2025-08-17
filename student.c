@@ -661,11 +661,19 @@ int check_account_activation_status(char *student_id) {
 // Forward declarations for order placement
 void browse_menu_items(MenuItemDisplay *menu_items, int *item_count);
 void display_menu_for_ordering(MenuItemDisplay *menu_items, int item_count);
-int select_items_for_order(MenuItemDisplay *menu_items, int item_count, OrderItem *order_items, int *order_count);
-float calculate_total_cost(OrderItem *order_items, int order_count);
+int select_items_for_order(MenuItemDisplay *menu_items, int item_count, Order *order_items, int *order_count);
+float calculate_total_cost(Order *order_items, int order_count);
 int process_payment(float total_cost);
-void generate_order_confirmation(OrderItem *order_items, int order_count, float total_cost);
+void generate_order_confirmation(Order *order_items, int order_count, float total_cost);
 const char* get_cuisine_name_from_type(int cuisine_type);
+int write_order_into_queue_file(const char *order_id, Order *order_items, int order_count);
+int write_order_into_order_file(Order *order);
+void get_order_id(char *id, int id_size);
+void get_current_date_and_time_order();
+
+#define ADD_ITEM 1
+#define REMOVE_ITEM 2
+#define PROCEED_TO_CHECKOUT 3
 
 int order_placement(void) {
     printf("\n----- ORDER PLACEMENT -----\n");
@@ -704,7 +712,8 @@ int order_placement(void) {
     }
     
     // Display menu and allow selection
-    OrderItem order_items[50];
+    Order new_order;
+    Order order_items[50];
     int order_count = 0;
     
     if (!select_items_for_order(menu_items, item_count, order_items, &order_count)) {
@@ -722,8 +731,20 @@ int order_placement(void) {
     
     // Process payment
     if (process_payment(total_cost)) {
+        char order_id[ORDER_ID_LENGTH];
+        get_order_id(order_id, sizeof(order_id));
+
+        // fill new_order basic info
+        strcpy(new_order.order_id, order_id);
+        strcpy(new_order.student_id, current_student_id);
+        strcpy(new_order.restaurant_id, order_items[0].restaurant_id); // assumes all items same restaurant
+        new_order.total_price = total_cost;
+        new_order.status[0] = '\0';
+
+        write_order_into_queue_file(order_id, order_items, order_count);
+        write_order_into_order_file(&new_order);
+
         generate_order_confirmation(order_items, order_count, total_cost);
-        printf("Order placed successfully!\n");
     } else {
         printf("Payment failed. Order cancelled.\n");
     }
@@ -828,7 +849,7 @@ void display_menu_for_ordering(MenuItemDisplay *menu_items, int item_count) {
 }
 
 // Function to select items for order
-int select_items_for_order(MenuItemDisplay *menu_items, int item_count, OrderItem *order_items, int *order_count) {
+int select_items_for_order(MenuItemDisplay *menu_items, int item_count, Order *order_items, int *order_count) {
     *order_count = 0;
     
     while (1) {
@@ -843,6 +864,7 @@ int select_items_for_order(MenuItemDisplay *menu_items, int item_count, OrderIte
                        order_items[i].item_price, order_items[i].subtotal);
             }
         }
+
         char prompt[] = "\nOptions:\n"
                         "1. Add item to order\n"
                         "2. Remove item from order\n"
@@ -853,7 +875,7 @@ int select_items_for_order(MenuItemDisplay *menu_items, int item_count, OrderIte
         int choice = get_integer_input(prompt);
         
         switch (choice) {
-            case 1: {
+            case ADD_ITEM: {
                 if (*order_count >= 50) {
                     printf("Maximum order items reached (50).\n");
                     break;
@@ -901,7 +923,7 @@ int select_items_for_order(MenuItemDisplay *menu_items, int item_count, OrderIte
                 }
                 break;
             }
-            case 2: {
+            case REMOVE_ITEM: {
                 if (*order_count == 0) {
                     printf("No items in order to remove.\n");
                     break;
@@ -926,7 +948,7 @@ int select_items_for_order(MenuItemDisplay *menu_items, int item_count, OrderIte
                 printf("\nItem removed from order.\n");
                 break;
             }
-            case 3:
+            case PROCEED_TO_CHECKOUT:
                 if (*order_count == 0) {
                     printf("\nNo items in order. Please add items first.\n");
                     break;
@@ -941,7 +963,7 @@ int select_items_for_order(MenuItemDisplay *menu_items, int item_count, OrderIte
 }
 
 // Function to calculate total cost
-float calculate_total_cost(OrderItem *order_items, int order_count) {
+float calculate_total_cost(Order *order_items, int order_count) {
     float total = 0.0;
     for (int i = 0; i < order_count; i++) {
         total += order_items[i].subtotal;
@@ -987,8 +1009,99 @@ int process_payment(float total_cost) {
     }
 }
 
+// Function to get order_id
+void get_order_id(char *id, int id_size) {
+    FILE *fp = fopen(ORDER_FILE, "r");
+    if (fp == NULL) {
+        snprintf(id, id_size, "O00001");
+        return;
+    }
+
+    char line[MAX_LINE_LENGTH];
+    int max_num = 0;
+
+    while (fgets(line, sizeof(line), fp)) {
+        char line_copy[MAX_LINE_LENGTH];
+        strncpy(line_copy, line, sizeof(line_copy));
+        char *token = strtok(line_copy, ",");
+        if (token && token[0] == 'O') {
+            int num = atoi(&token[1]);
+            if (num > max_num) max_num = num;
+        }
+    }
+    fclose(fp);
+    snprintf(id, id_size, "O%05d", max_num + 1);
+}
+
+// Function to get current date and time
+void get_current_date_and_time_order(char *date_str, int date_size, char *time_str, int time_size) {
+    time_t t;
+    struct tm *tm_info;
+
+    time(&t);                       // Get current time
+    tm_info = localtime(&t);        // Convert to local time
+
+    // format date as DD-MM-YYYY
+    strftime(date_str, date_size, "%d-%m-%Y", tm_info);
+
+    // format time as HH:MM:SS
+    strftime(time_str, time_size, "%H:%M:%S", tm_info);
+}
+
+// Function to write order into 'Order.txt' file
+int write_order_into_order_file(Order *order) {
+    FILE *fp = fopen(ORDER_FILE, "a");
+    if (fp == NULL) {
+        printf("Error: Could not open '%s' file.\n", ORDER_FILE);
+        return FILE_ERROR;
+    }
+
+    // Get current date & time
+    get_current_date_and_time_order(order->order_date, sizeof(order->order_date),
+                                    order->order_time, sizeof(order->order_time));
+
+    // Set order status
+    if (strlen(order->status) == 0) {
+        strcpy(order->status, "CONFIRMED");
+    }
+
+    fprintf(fp, "%s,%s,%s,%.2f,%s,%s,%s\n", 
+            order->order_id, 
+            order->student_id, 
+            order->restaurant_id, 
+            order->total_price, 
+            order->order_date, 
+            order->order_time, 
+            order->status);
+    fclose(fp);
+    printf("\nNew order '%s' sent to restaurant(s) successfully!\n", order->order_id);
+    return 1;
+}
+
+// Function to write order into 'Queue.txt' file
+int write_order_into_queue_file(const char *order_id, Order *order_items, int order_count) {
+    FILE *fp = fopen(QUEUE_FILE, "a");
+    if (fp == NULL) {
+        printf("Error: Could not open '%s' file.\n", QUEUE_FILE);
+        return FILE_ERROR;
+    }
+
+    fprintf(fp, "%s", order_id); // write order_id first
+
+    // append each menu item with its quantity
+    for (int i = 0; i < order_count; i++) {
+        fprintf(fp, ",%s,%d", order_items[i].menu_item_id, order_items[i].quantity);
+    }
+
+    fprintf(fp, "\n");
+    fclose(fp);
+
+    printf("\nOrder '%s' added into queue successfully!\n", order_id);
+    return 1;
+}
+
 // Function to generate order confirmation
-void generate_order_confirmation(OrderItem *order_items, int order_count, float total_cost) {
+void generate_order_confirmation(Order *order_items, int order_count, float total_cost) {
     printf("\n======================== ORDER CONFIRMATION ========================\n");
     printf("Order placed successfully!\n");
     printf("Student ID: %s\n", current_student_id);
@@ -1147,7 +1260,7 @@ int find_student_orders(char *student_id, OrderHistory *orders, int *count) {
             
             // Get restaurant name
             get_restaurant_info(restaurant_id, orders[*count].restaurant_name, NULL);
-            
+
             // Get items summary
             get_order_items_summary(order_id, orders[*count].items_summary, sizeof(orders[*count].items_summary));
             

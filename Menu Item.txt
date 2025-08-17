@@ -1,9 +1,11 @@
 R01,M001,Lemonade,3.00
 R01,M002,Milk Tea,4.20
-R02,M001,Coffee,4.00
-R02,M002,Sandwich,8.50
-R02,M003,Green Tea,4.00
-R03,M001,Curry Chicken Rice,12.00
-R04,M001,Nasi Goreng,8.50
-R04,M002,Maggi Goreng,8.50
-R04,M003,Nasi Ayam Merah,9.00
+R02,M003,Coffee,4.00
+R02,M004,Sandwich,8.50
+R02,M005,Green Tea,4.00
+R03,M006,Curry Chicken Rice,12.00
+R04,M007,Nasi Goreng,8.50
+R04,M008,Maggi Goreng,8.50
+R04,M009,Nasi Ayam Merah,9.00
+R01,M010,Melon Shake,5.00
+R01,M011,Strawberry Shake,5.00
